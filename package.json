@@ -1,8 +1,7 @@
 {
-  "name": "battleship",
+  "name": "zksnake",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://scrypt.io/zk-battleship",
   "engines": {
     "npm": ">=7.0.0",
     "node": ">=16.0.0"

@@ -1,6 +1,6 @@
 import "verifier.scrypt";
 
-contract BattleShip {
+contract ZkSnake {
 
     PubKey you;
     PubKey computer;
