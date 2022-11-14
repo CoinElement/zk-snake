@@ -1,19 +1,13 @@
 import "./mimc7" as mimc7;
 
-def isEatingPoison(field x, field y, field snakeState) -> bool {
-    return x == (snakeState >> x) % 2 == 1 && (snakeState >> y) % 2 == 1;
-}
+def main(private field poisonX, private field poisonY, field snakeState, field poisonHash) -> bool {
 
-// poisonX 地雷的X
-// poisonY 地雷的Y
-// snakeHash1 玩家1的hash
-// snakeHash2 玩家2的Hash
-def main(private field poisonX,private field poisonY,private field snakeState1,private field snakeState2,field snakeHash1,field snakeHash2) -> bool {
-    assert(mimc7::<25>(snakeState1, 0) == snakeHash1);
-    assert(mimc7::<25>(snakeState2, 0) == snakeHash2);
+    field poisonIndex = poisonX * 5 + poisonY;
+    field poisonState = 1 << poisonIndex;
 
-    bool isSnake1Hit = isEatingPoison(poisonX, snakeState1);
-    bool isSnake2Hit = isEatingPoison(poisonY, snakeState2);
+    assert(mimc7::<25>(poisonState, 0) == poisonHash);
 
-    return (isSnake1Hit || isSnake2Hit);
+    bool isSnakeHit = (poisonState & snakeState) > 0;
+
+    return (isSnakeHit);
 }

@@ -2,73 +2,70 @@ import "verifier.scrypt";
 
 contract ZkSnake {
 
-    PubKey you;
-    PubKey computer;
+    PubKey player1Key;
+    PubKey player2Key;
 
-    int yourHash;
-    int computerHash;
-
-    @state
-    int successfulYourHits;
+    int player1Hash;
+    int player2Hash;
 
     @state
-    int successfulComputerHits;
+    bool player1PoisonHit;
 
     @state
-    bool yourTurn;
-
-
-    @state
-    bool[100] yourHits;
+    bool player2PoisonHit;
 
     @state
-    bool[100] computerHits;
+    bool player1Turn;
 
-    public function move(Sig sig, int x, int y, bool hit, Proof proof, SigHashPreimage txPreimage)
-    {
+    @state
+    int player1Snake;
+
+    @state
+    int player2Snake;
+
+    // if (this.player1PoisonHits == 17) {
+    //     bytes script = Utils.buildPublicKeyHashScript(hash160(this.player1Key));
+    //     outputs = Utils.buildOutput(script, SigHash.value(txPreimage));
+    // }
+    // else if (this.player2PoisonHits == 17) {
+    //     bytes script = Utils.buildPublicKeyHashScript(hash160(this.player2Key));
+    //     outputs = Utils.buildOutput(script, SigHash.value(txPreimage));
+    // }
+    // else {
+    //     bytes outputScript = this.getStateScript();
+    //     outputs = Utils.buildOutput(outputScript, SigHash.value(txPreimage));
+    // }
+    // make sure the transaction contains the expected outputs
+    // require(hash256(outputs) == SigHash.hashOutputs(txPreimage));
+    public function move(Sig sig, int snakeState, bool hit, Proof proof, SigHashPreimage txPreimage) {
         require(Tx.checkPreimage(txPreimage));
 
-        require(ZKSNARK.verify([this.yourTurn ? this.computerHash : this.yourHash, x, y, hit ? 1 : 0], proof));
+        require(ZKSNARK.verify([snakeState, this.player1Turn ? this.player1Hash : this.player2Hash, hit ? 1 : 0], proof));
 
-
-        PubKey pubKey = this.yourTurn ? this.you : this.computer;
+        PubKey pubKey = this.player1Turn ? this.player1Key : this.player2Key;
         require(checkSig(sig, pubKey));
 
-        const int index = x * 10 + y;
-        if (this.yourTurn) {
-            require(!this.yourHits[index]);
-            this.yourHits[index] = true;
+        if (this.player1Turn) {
+            require((snakeState & this.player2Snake) == 0);
+            this.player1Snake = snakeState;
             if (hit) {
-                this.successfulYourHits++;
+                this.player1PoisonHit = true;
             }
         }
         else {
-            require(!this.computerHits[index]);
-            this.computerHits[index] = true;
+            require((snakeState & this.player1Snake) == 0);
+            this.player2Snake = snakeState;
             if (hit) {
-                this.successfulComputerHits++;
+                this.player2PoisonHit = true;
             }
         }
 
-        this.yourTurn = !this.yourTurn;
+        this.player1Turn = !this.player1Turn;
 
         bytes outputs = b'';
 
-        if (this.successfulYourHits == 17) {
-            bytes script = Utils.buildPublicKeyHashScript(hash160(this.you));
-            outputs = Utils.buildOutput(script, SigHash.value(txPreimage));
-        }
-        else if (this.successfulComputerHits == 17) {
-            bytes script = Utils.buildPublicKeyHashScript(hash160(this.computer));
-            outputs = Utils.buildOutput(script, SigHash.value(txPreimage));
-        }
-        else {
-
-            bytes outputScript = this.getStateScript();
-            outputs = Utils.buildOutput(outputScript, SigHash.value(txPreimage));
-        }
-
-        // make sure the transaction contains the expected outputs
+        bytes outputScript = this.getStateScript();
+        outputs = Utils.buildOutput(outputScript, SigHash.value(txPreimage));
         require(hash256(outputs) == SigHash.hashOutputs(txPreimage));
     }
 }
