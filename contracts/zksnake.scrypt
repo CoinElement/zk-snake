@@ -2,11 +2,9 @@ import "verifier.scrypt";
 
 contract ZkSnake {
 
-    PubKey player1Key;
-    PubKey player2Key;
+    PubKey playerKey;
 
-    int player1Hash;
-    int player2Hash;
+    int poisonHash;
 
     @state
     bool player1PoisonHit;
@@ -15,52 +13,18 @@ contract ZkSnake {
     bool player2PoisonHit;
 
     @state
-    bool player1Turn;
-
-    @state
     int player1Snake;
 
     @state
     int player2Snake;
 
-    // if (this.player1PoisonHits == 17) {
-    //     bytes script = Utils.buildPublicKeyHashScript(hash160(this.player1Key));
-    //     outputs = Utils.buildOutput(script, SigHash.value(txPreimage));
-    // }
-    // else if (this.player2PoisonHits == 17) {
-    //     bytes script = Utils.buildPublicKeyHashScript(hash160(this.player2Key));
-    //     outputs = Utils.buildOutput(script, SigHash.value(txPreimage));
-    // }
-    // else {
-    //     bytes outputScript = this.getStateScript();
-    //     outputs = Utils.buildOutput(outputScript, SigHash.value(txPreimage));
-    // }
-    // make sure the transaction contains the expected outputs
-    // require(hash256(outputs) == SigHash.hashOutputs(txPreimage));
-    public function move(Sig sig, int snakeState, bool hit, Proof proof, SigHashPreimage txPreimage) {
+    // hit 1:player1, 2:player2, 0:no
+    public function move(Sig sig, int snakeState1, int snakeState2, int hit, Proof proof, SigHashPreimage txPreimage) {
         require(Tx.checkPreimage(txPreimage));
 
-        require(ZKSNARK.verify([snakeState, this.player1Turn ? this.player1Hash : this.player2Hash, hit ? 1 : 0], proof));
+        require(ZKSNARK.verify([snakeState1, snakeState2, this.poisonHash, hit], proof));
 
-        PubKey pubKey = this.player1Turn ? this.player1Key : this.player2Key;
-        require(checkSig(sig, pubKey));
-
-        if (this.player1Turn) {
-            require((snakeState & this.player2Snake) == 0);
-            this.player1Snake = snakeState;
-            if (hit) {
-                this.player1PoisonHit = true;
-            }
-        }
-        else {
-            require((snakeState & this.player1Snake) == 0);
-            this.player2Snake = snakeState;
-            if (hit) {
-                this.player2PoisonHit = true;
-            }
-        }
-
-        this.player1Turn = !this.player1Turn;
+        require(checkSig(sig, this.playerKey));
 
         bytes outputs = b'';
 

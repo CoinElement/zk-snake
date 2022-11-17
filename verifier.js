@@ -1,12 +1,12 @@
 
 
-const { buildContractClass, PubKey, bsv,  Int,  buildTypeClasses, toHex, getPreimage, signTx } = require('scryptlib');
+const { buildContractClass, PubKey, bsv, Int, buildTypeClasses, toHex, getPreimage, signTx } = require('scryptlib');
 const fs = require('fs');
 const path = require('path');
 const assert = require('assert');
 const { initialize } = require('zokrates-js');
 const { buildMimc7 } = require('circomlibjs');
-const { loadDesc,deployContract, createInputFromPrevTx, fetchUtxos, sendTx} = require('./helper');
+const { loadDesc, deployContract, createInputFromPrevTx, fetchUtxos, sendTx } = require('./helper');
 const { privateKey } = require('./privateKey');
 
 bsv.Transaction.FEE_PER_KB = 0.0001;
@@ -24,11 +24,11 @@ async function zokratesProof(ships, x, y) {
 
   const defaultProvider = await initialize();
 
-  let zokratesProvider = defaultProvider.withOptions({ 
+  let zokratesProvider = defaultProvider.withOptions({
     backend: "bellman",
     curve: "bn128",
     scheme: "g16"
-});
+  });
 
   const program = fs.readFileSync(path.join(__dirname, 'circuits', 'out'));
   let abi = JSON.parse(fs.readFileSync(path.join(__dirname, 'circuits', 'abi.json')).toString());
@@ -61,7 +61,7 @@ async function run() {
 
   console.log('generating proof ...')
 
-  const {proof, output}  = await zokratesProof(playerShips, 0, 0);
+  const { proof, output } = await zokratesProof(playerShips, 0, 0);
 
   console.log('compiling contract ...')
 
@@ -108,13 +108,13 @@ async function run() {
 
   const unlockingTx = new bsv.Transaction();
   unlockingTx.addInput(createInputFromPrevTx(tx))
-  .change(privateKey.toAddress())
-  .setInputScript(0, (_) => {
+    .change(privateKey.toAddress())
+    .setInputScript(0, (_) => {
       return unlockCall.toScript();
-  })
-  .seal()
+    })
+    .seal()
 
-  
+
   // unlock
   console.log('start calling zkSNARK verifier ... ')
   await sendTx(unlockingTx)
@@ -146,7 +146,7 @@ async function deploy() {
 
   console.log('generating proof ...')
 
-  const {proof, output}  = await zokratesProof(playerShips, 6, 8, true);
+  const { proof, output } = await zokratesProof(playerShips, 6, 8, true);
 
 
   const Battleship = buildContractClass(loadDesc('battleship'));
@@ -167,18 +167,19 @@ async function deploy() {
   console.log("deployed:", deployTx.id);
 
   const newLockingScript = battleship.getNewStateScript({
-      successfulYourHits: output ? 1 : 0,
-      successfulComputerHits: 0,
-      yourTurn: false })
+    successfulYourHits: output ? 1 : 0,
+    successfulComputerHits: 0,
+    yourTurn: false
+  })
 
 
   const unlockingTx = new bsv.Transaction();
 
   unlockingTx.addInput(createInputFromPrevTx(deployTx))
   unlockingTx.setOutput(0, (tx) => {
-    const amount = initAmount- tx.getEstimateFee();
+    const amount = initAmount - tx.getEstimateFee();
 
-    if(amount < 1) {
+    if (amount < 1) {
       throw new Error('Not enough funds.')
     }
 
@@ -187,37 +188,37 @@ async function deploy() {
       satoshis: amount,
     })
   })
-  .setInputScript(0, (tx, output) => {
-    const preimage = getPreimage(tx, output.script, output.satoshis)
-    const currentTurn = true;
-    const privateKey = currentTurn ? privateKeyPlayer : publicKeyComputer;
-    const sig = signTx(tx, privateKey, output.script, output.satoshis)
-    let amount = initAmount - tx.getEstimateFee();
+    .setInputScript(0, (tx, output) => {
+      const preimage = getPreimage(tx, output.script, output.satoshis)
+      const currentTurn = true;
+      const privateKey = currentTurn ? privateKeyPlayer : publicKeyComputer;
+      const sig = signTx(tx, privateKey, output.script, output.satoshis)
+      let amount = initAmount - tx.getEstimateFee();
 
-    return battleship.move(sig, 6, 8, true, new Proof({
-      a: new G1Point({
-        x: new Int(proof.proof.a[0]),
-        y: new Int(proof.proof.a[1]),
-      }),
-      b: new G2Point({
-        x: new FQ2({
-          x: new Int(proof.proof.b[0][0]),
-          y: new Int(proof.proof.b[0][1]),
+      return battleship.move(sig, 6, 8, true, new Proof({
+        a: new G1Point({
+          x: new Int(proof.proof.a[0]),
+          y: new Int(proof.proof.a[1]),
         }),
-        y: new FQ2({
-          x: new Int(proof.proof.b[1][0]),
-          y: new Int(proof.proof.b[1][1]),
+        b: new G2Point({
+          x: new FQ2({
+            x: new Int(proof.proof.b[0][0]),
+            y: new Int(proof.proof.b[0][1]),
+          }),
+          y: new FQ2({
+            x: new Int(proof.proof.b[1][0]),
+            y: new Int(proof.proof.b[1][1]),
+          })
+        }),
+        c: new G1Point({
+          x: new Int(proof.proof.c[0]),
+          y: new Int(proof.proof.c[1]),
         })
-      }),
-      c: new G1Point({
-        x: new Int(proof.proof.c[0]),
-        y: new Int(proof.proof.c[1]),
-      })
-    }), amount, preimage).toScript();
+      }), amount, preimage).toScript();
 
-  })
-  .change(privateKey.toAddress())
-  .seal();
+    })
+    .change(privateKey.toAddress())
+    .seal();
 
   console.log("unlocking ...")
   await sendTx(unlockingTx)
@@ -227,7 +228,7 @@ async function deploy() {
 }
 
 
-async function  shipsToWitness(ships, x, y) {
+async function shipsToWitness(ships, x, y) {
   let witness = [];
 
   for (let i = 0; i < ships.length; i++) {
@@ -262,32 +263,42 @@ async function hashShips(placedShips) {
   return mimc7.F.toString(mimc7.hash(shipPreimage, 0));
 }
 
+async function hashPoison(poisonState) {
+  let poisonPreimage = 0n;
+
+  poisonPreimage = BigInt(poisonState);
+
+  const mimc7 = await buildMimc7();
+
+  return mimc7.F.toString(mimc7.hash(poisonPreimage, 0))
+}
 
 
-if(process.argv.includes('--run')) {
+
+if (process.argv.includes('--run')) {
   run().then(() => {
     process.exit(0);
   })
-  .catch(e => {
-    if(e.response) {
-      console.error('error: ', e.response.data)
-    } else {
-      console.error('error: ', e)
-    }
-  })
+    .catch(e => {
+      if (e.response) {
+        console.error('error: ', e.response.data)
+      } else {
+        console.error('error: ', e)
+      }
+    })
 }
 
-if(process.argv.includes('--deploy')) {
+if (process.argv.includes('--deploy')) {
   deploy().then(() => {
     process.exit(0);
   })
-  .catch(e => {
-    if(e.response) {
-      console.error('error: ', e.response.data)
-    } else {
-      console.error('error: ', e)
-    }
-  })
+    .catch(e => {
+      if (e.response) {
+        console.error('error: ', e.response.data)
+      } else {
+        console.error('error: ', e)
+      }
+    })
 }
 
 module.exports = {
@@ -296,4 +307,3 @@ module.exports = {
   reverseHex,
   zokratesProof
 }
-

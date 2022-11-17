@@ -1,13 +1,13 @@
 import "./mimc7" as mimc7;
+from "utils/casts" import cast;
+import "./u32_to_field" as u32_to_field;
 
-def main(private field poisonX, private field poisonY, field snakeState, field poisonHash) -> bool {
+// return hit, 1:player1, 2:player2, 0:no
+def main(private u32 poisonState, u32 snakeState1, u32 snakeState2, field poisonHash) -> u8 {
+    assert(mimc7::<25>(u32_to_field(poisonState), 0) == poisonHash);
 
-    field poisonIndex = poisonX * 5 + poisonY;
-    field poisonState = 1 << poisonIndex;
+    bool isSnake1Hit = (poisonState & snakeState1) > 0;
+    bool isSnake2Hit = (poisonState & snakeState2) > 0;
 
-    assert(mimc7::<25>(poisonState, 0) == poisonHash);
-
-    bool isSnakeHit = (poisonState & snakeState) > 0;
-
-    return (isSnakeHit);
+    return isSnake1Hit ? 1 : (isSnake2Hit ? 2 : 0);
 }

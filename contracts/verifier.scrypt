@@ -1892,7 +1892,7 @@ library ZKSNARK {
             }]};
 
     // Number of inputs.
-    static const int N = 3;
+    static const int N = 4;
     static const int N_1 = 5; // N + 1, gamma_abc length
 
 
