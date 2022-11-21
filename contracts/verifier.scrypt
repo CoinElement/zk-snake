@@ -48,7 +48,7 @@ struct FQ12 {
 library BN256 {
 
     // Curve bits:
-    static const int CURVE_BITS = 256;
+    static const int CURVE_BITS = 256; 
     static const int CURVE_BITS_P8 = 264; // +8 bits
 
     // Key int size:
@@ -116,7 +116,7 @@ library BN256 {
 
     // xiTo2PSquaredMinus2Over3 is ξ^((2p²-2)/3) where ξ = i+9 (a cubic root of unity, mod p).
     static const FQ xiTo2PSquaredMinus2Over3 = 0x59e26bcea0d48bacd4f263f1acdb5c4f5763473177fffffe;
-
+    
     // xiToPSquaredMinus1Over3 is ξ^((p²-1)/3) where ξ = i+9.
     static const FQ xiToPSquaredMinus1Over3 = 0x30644e72e131a0295e6dd9e7e0acccb0c28f069fbb966e3de4bd44e5607cfd48;
 
@@ -136,7 +136,7 @@ library BN256 {
         int ty = a.y * b.y;
         int t_2 = a.x * b.x;
         int ty_2 = ty - t_2;
-
+        
         return {modReduce(tx_2, P), modReduce(ty_2, P)};
     }
 
@@ -156,7 +156,7 @@ library BN256 {
 
     static function addFQ2(FQ2 a, FQ2 b) : FQ2 {
         return {
-            modReduce(a.x + b.x, P),
+            modReduce(a.x + b.x, P), 
             modReduce(a.y + b.y, P)
         };
     }
@@ -170,14 +170,14 @@ library BN256 {
 
     static function negFQ2(FQ2 a) : FQ2 {
         return {
-            modReduce(a.x * -1, P),
+            modReduce(a.x * -1, P), 
             modReduce(a.y * -1, P)
         };
     }
 
     static function conjugateFQ2(FQ2 a) : FQ2 {
         return {
-            modReduce(a.x * -1, P),
+            modReduce(a.x * -1, P), 
             modReduce(a.y, P)
         };
     }
@@ -206,7 +206,7 @@ library BN256 {
     }
 
     static function inverseFQ2(FQ2 a) : FQ2 {
-        int t2 = a.y * a.y;
+        int t2 = a.y * a.y; 
         int t1 = (a.x * a.x) + t2;
 
         int inv = modInverseBranchlessP(t1);
@@ -239,7 +239,7 @@ library BN256 {
 
         t0 = addFQ2(a.y, a.z);
         t1 = addFQ2(b.y, b.z);
-
+        
         FQ2 ty = mulFQ2(t0, t1);
         ty = subFQ2(ty, v0);
         ty = subFQ2(ty, v1);
@@ -352,7 +352,7 @@ library BN256 {
         FQ2 t1 = mulFQ2(a.x, a.y);
         t1 = mulXiFQ2(t1);
         A = subFQ2(A, t1);
-
+        
         FQ2 B = squareFQ2(a.x);
         B = mulXiFQ2(B);
         t1 = mulFQ2(a.y, a.z);
@@ -361,7 +361,7 @@ library BN256 {
         FQ2 C = squareFQ2(a.y);
         t1 = mulFQ2(a.x, a.z);
         C = subFQ2(C, t1);
-
+        
         FQ2 F = mulFQ2(C, a.y);
         F = mulXiFQ2(F);
         t1 = mulFQ2(A, a.z);
@@ -400,7 +400,7 @@ library BN256 {
             negFQ6(a.x),
             a.y
         };
-
+        
         return mulScalarFQ12(e, t2_2);
     }
 
@@ -412,7 +412,7 @@ library BN256 {
         FQ6 ty = mulFQ6(a.y, b.y);
         FQ6 t2 = mulFQ6(a.x, b.x);
         FQ6 t3 = mulTauFQ6(t2);
-
+        
         return {tx2, addFQ6(ty, t3)};
     }
 
@@ -584,7 +584,7 @@ library BN256 {
         FQ12 sum88 = squareFQ12(sum87);
         FQ12 sum89 = squareFQ12(sum88);
         FQ12 sum90 = mulFQ12(sum89, a);
-
+        
         return sum90;
 
     }
@@ -618,7 +618,7 @@ library BN256 {
         CurvePoint res = doubleCurvePoint(
                 createCurvePoint(a)
         );
-
+        
         return getG1Point(res);
     }
 
@@ -667,14 +667,14 @@ library BN256 {
                 createCurvePoint(a),
                 createCurvePoint(b)
         );
-
+        
         return getG1Point(res);
     }
 
     static function addCurvePoints(CurvePoint a, CurvePoint b) : CurvePoint {
         // See http://hyperelliptic.org/EFD/g1p/auto-code/shortw/jacobian-0/addition/add-2007-bl.op3
         CurvePoint res = {0, 0, 0, 0};
-
+        
         if (a.z == 0) {
             res = b;
         } else if (b.z == 0) {
@@ -683,10 +683,10 @@ library BN256 {
             // Normalize the points by replacing a = [x1:y1:z1] and b = [x2:y2:z2]
             // by [u1:s1:z1·z2] and [u2:s2:z1·z2]
             // where u1 = x1·z2², s1 = y1·z2³ and u1 = x2·z1², s2 = y2·z1³
-
+            
             int z12 = modReduce(a.z * a.z, P);
             int z22 = modReduce(b.z * b.z, P);
-
+            
             int u1 = modReduce(a.x * z22, P);
             int u2 = modReduce(b.x * z12, P);
 
@@ -737,7 +737,7 @@ library BN256 {
                 t6 = t4 * 2;
                 t4 = modReduce(r * t, P);
                 res.y = t4 - t6;
-
+                
                 // Set z = 2(u2-u1)·z1·z2 = 2h·z1·z2
                 t = a.z + b.z;
                 t4 = modReduce(t * t, P);
@@ -755,10 +755,10 @@ library BN256 {
                 createCurvePoint(a),
                 m
         );
-
+        
         return getG1Point(res);
     }
-
+        
     static function mulCurvePoint(CurvePoint a, int m) : CurvePoint {
         CurvePoint res = {0, 1, 0, 0};
 
@@ -804,7 +804,7 @@ library BN256 {
                 FQ zInv2 = modReduce(zInv * zInv, P);
                 FQ ay = modReduce(t * zInv2, P);
                 FQ ax = modReduce(a.x * zInv2, P);
-
+                
                 res = {ax, ay, 1, 1};
             }
         }
@@ -840,7 +840,7 @@ library BN256 {
         TwistPoint res = doubleTwistPoint(
                 createTwistPoint(a)
         );
-
+        
         return getG2Point(res);
     }
 
@@ -882,13 +882,13 @@ library BN256 {
                 createTwistPoint(a),
                 createTwistPoint(b)
         );
-
+        
         return getG2Point(res);
     }
 
     static function addTwistPoints(TwistPoint a, TwistPoint b) : TwistPoint {
         TwistPoint res = {FQ2Zero, FQ2Zero, FQ2Zero, a.t};
-
+        
         if (a.z == FQ2Zero) {
             res = b;
         } else if (b.z == FQ2Zero) {
@@ -899,10 +899,10 @@ library BN256 {
             // Normalize the points by replacing a = [x1:y1:z1] and b = [x2:y2:z2]
             // by [u1:s1:z1·z2] and [u2:s2:z1·z2]
             // where u1 = x1·z2², s1 = y1·z2³ and u1 = x2·z1², s2 = y2·z1³
-
+            
             FQ2 z12 = squareFQ2(a.z);
             FQ2 z22 = squareFQ2(b.z);
-
+            
             FQ2 u1 = mulFQ2(a.x, z22);
             FQ2 u2 = mulFQ2(b.x, z12);
 
@@ -952,7 +952,7 @@ library BN256 {
                 t6 = mulScalarFQ2(t4, 2);
                 t4 = mulFQ2(r, t);
                 res.y = subFQ2(t4, t6);
-
+                
                 // Set z = 2(u2-u1)·z1·z2 = 2h·z1·z2
                 t = addFQ2(a.z, b.z);
                 t4 = squareFQ2(t);
@@ -966,7 +966,7 @@ library BN256 {
     }
 
     static function makeAffineTwistPoint(TwistPoint a) : TwistPoint {
-        TwistPoint res = a;
+        TwistPoint res = a; 
         if (a.z != {0, 1}) {
             if (a.z == FQ2Zero) {
                 res = {
@@ -1007,8 +1007,8 @@ library BN256 {
         // Output x and y coords from ZoKrates need to be swaped to work correctly.
         FQ2 x = {ctp.x.y, ctp.x.x};
         FQ2 y = {ctp.y.y, ctp.y.x};
-        return ctp == {FQ2Zero, FQ2One} ?
-                        {FQ2Zero, FQ2One, FQ2Zero, FQ2Zero} :
+        return ctp == {FQ2Zero, FQ2One} ? 
+                        {FQ2Zero, FQ2One, FQ2Zero, FQ2Zero} : 
                         {x, y, FQ2One, FQ2One};
     }
 
@@ -1198,7 +1198,7 @@ library BN256Pairing {
         //                           0, 1, 1, 0, -1, 0, 0, 1, 0, -1, 0, 0, 0, 0, 1, 1,
         //                           1, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, -1, 0, 0, 1,
         //                           1, 0, 0, -1, 0, 0, 0, 1, 1, 0, -1, 0, 0, 1, 0, 1, 1}
-
+        
         //---- 1
         LineFuncRes lfr = lineFuncDouble(r, bAffine);
         ret = mulLine(ret, lfr.a, lfr.b, lfr.c);
@@ -1668,7 +1668,7 @@ library BN256Pairing {
         FQ12 t1 = {
             BN256.negFQ6(in.x),
             in.y
-        };
+        }; 
 
         FQ12 inv = BN256.inverseFQ12(in);
         t1 = BN256.mulFQ12(t1, inv);
@@ -1761,7 +1761,7 @@ library BN256Pairing {
 
     static function pair(G1Point g1, G2Point g2) : FQ12 {
         return pairInternal(
-                BN256.createCurvePoint(g1),
+                BN256.createCurvePoint(g1), 
                 BN256.createTwistPoint(g2)
             );
     }
@@ -1833,7 +1833,7 @@ struct VerifyingKey {
     FQ12 millerb1a1;
     G2Point gamma;
     G2Point delta;
-    G1Point[ZKSNARK.N_1] gamma_abc;
+    G1Point[ZKSNARK.N_1] gamma_abc; 
 }
 
 struct Proof {
@@ -1847,48 +1847,48 @@ library ZKSNARK {
 
     static const VerifyingKey vk = {{
                 {
-                    {0x1024c0737df14d5bc0b288979f63fa550f2e0dd6329737c58ffdc81e7f079a14, 0x2772725bb1731a5a8807f098636726f6c5949e7c75cc9fc73964b6ded17fb376},
-                    {0x14909d48a517bee2d88a3766c6656ee7b051b388044b9319884e9aee49d6f318, 0x1c7c391a0e84fe2feb92cb95cc4aa50c38d85e80950d80fb4f11d597d9c9d6d0},
-                    {0x00f03eb13a93de48a76de5ff99ff705712e913aba3d63d5d19eb1b8d8ceac896, 0x0680e8d6cf741c3187a1107025aa9967becc2bf50f8c9908f3b5c9e7bbaabc9a}
+                    {0x2d2428002ca377c33fdfec2091adf97ed5ebf18b6d96b7d5279f6ce04ea3f5e7, 0x04ffb06489d72cf35c2c347052c9c8317cb98654154db333c09cd793f96c8970},
+                    {0x0458b4a4a138b99be4ceb444232d8d6f475e4be2d49184d3b176867465558e73, 0x256e91879a0b569e71f8ac3eeb84260810970da3eb5a12286ae556c51e94a2f0},
+                    {0x19cf15535f22020d6b8085985be9e0b089400dd9d00a71070515de08d1de2b87, 0x0b93a9017c32c61bcbd8f74af1b78253ab2fb05fbbbff4b402314e371471dcd0}
                 },
                 {
-                    {0x1041d9bef72df20da64e9a5fec56231b925fd1424661510c9592dc01b4d32145, 0x16524b01660acb8282138791cc237897a8b0223b29aab0b1ad43c2a61f2e6215},
-                    {0x03458a76a6f108a174a06f13c634c9ee4a2b0e70463aeb5dbfc60188e8bc39a4, 0x15b2609ad94fa5e36eadb2655caf28f4a5b4fa317f05249a7e921567058da240},
-                    {0x0316d5b3fab76a7a65b44272de3e71f22d7b95cae91d271a1e76afd8ce842d07, 0x0efee1b290067b0b764d610bc21d5661767f38185b30a80c8bdb42fbc244443d}
+                    {0x132eef954fa7c343a3d597dd8832dfb6a66b48ca2fd52614263aaa4a20271ce9, 0x18acd48336b790467dab47c78442200d80a8b19c02b7ed9707dcb5c6b42c5bda},
+                    {0x0dd44cbc0c7904a45dca8786395c6300123302cc78929c9073a83289b8dcd894, 0x1bc5c723946dd734a3c5bfa093d6df797391b9f1507d9416831e22db6f010ecc},
+                    {0x1ee338e65d772cd70c48dfddae1e42248e065d9374cfb2c548937eee50b71d50, 0x1010a1248c29dc833b111e70ee20629fa2f9ac18ac0eba00a138a91ee18f3a15}
                 }
             },{
                 {
-                    0x1cd322c36ebf853ddee72767513af37f1686a8694a55a0fb35ecc61f1196fdca,
-                    0x263567d1e7d860732c06ef1fa81404ae80cb79a57fe787966ba1483efebb4d12
-                },
+                    0x22999325b1acc8f1014d3d65dca2c42e65dd64038cdf2f6636f228c48c08ea09,
+                    0x268b15cfb3df68da52f66bc191f0ce8b1124b46fcb6e6d8a9b7e5da09bbbc775
+                }, 
                 {
-                    0x11d15e589d358aa678d51471667bbb9e3a583d753f703da2ba108a3b362cc3e6,
-                    0x27005c8676ed383b23e56bc08ed2dfa62485e26d40921fdad89ece750b39bf7d
+                    0x144211ab777e14aff5ea28a826ffda8585ccec371edc4e0577e829b14d4aac61,
+                    0x0e7b59d9b6e8387eb090021259d45a8f63e26f8ce337282bb5c5adcc2d8a703f
                 }
             },{
                 {
-                    0x15fc6c0ce68d6762db077dc99c84d941936b91544b544e9af1c232e6ed1e835e,
-                    0x01de529f3f279a87c2d351458705d8746a5508218be0b8f2a0e32e305a617259
-                },
+                    0x2f42a11811eb07e2fb59cacb942431e842651c5d8bde8ca9acb7ac7413546bb8,
+                    0x28f938a99e031941c96db659fd14a9416bcaa2400e231476ad763a388f636f39
+                }, 
                 {
-                    0x04a15a31a1b4a07ab8c1883bce0b782a0a36b6f8fdb1b831b38194b3f40b19cb,
-                    0x1b47dbb29d31c3cbc5b1eb14590ca0a8d3f3954439f38425a2d1b7be7e69989e
+                    0x16ad486e7f1d87bb989e7d5fb68f15d136878c927cad9de24fab28088f1c8574,
+                    0x05002a161d66b8c36a3ead6e756ef18fa6701c338496f856b84b6474a751e49c
                 }
             },[{
-                0x254a5699672c62ed58d010280d0f4eca8977aefbc0d439ffe898507b421290c3,
-                0x1bb53bf23bdba4eb9339ef34610167170dea609f3d06fc514bfc17b6addbfa49
+                0x21d82eb422f75404f86dae87a5063367c416dfc1f2da7207a58d594f638c8b07,
+                0x0048952d04a1ed2fc47f976f8ec6fb4f13001e03f90f89bcca9bafc605759ae3
             },{
-                0x263b87851250a7df7d87f7f51dae6a6ebc330f60db1b08e6822a2eee472604e5,
-                0x0abc0c7361dc43f0669204afaec2f44239c7ef52ae7e72e6ee242099006d9f62
+                0x19b1f140adb1d718467643995ba166ad12763182290b5ab78c1c66f4eb32a8e0,
+                0x236dfb7bcd10c59bd40d9eefd45ae8a608ddf7cc608f5b9ddf51df41ec5293e9
             },{
-                0x263d09bd34121d29f4c776fd578635d05b5e27c927252cbdf8998ad57e247e7d,
-                0x04f3eb8f72564b69fbda4054386e4691688cb03d5ec518c96d80011b9d7b9617
+                0x223bc27bdf66e809b1308c252f983a05b2e1bfacbfa8cc94aeace4350ab3b8e0,
+                0x0adf131e5db4dce7a32e09b8cef72703c5799a45f22042c4a0ea1917a69d7a52
             },{
-                0x11230562a08b0b1054d6dbae27b936ea3377930bdd0c9a6a812142b5baa7de26,
-                0x2748683529f8cf66a5f537221f5528e5b865bf67b05a0c339a1d7b3cb9a360e4
+                0x10683623bccd3c15d5fb0a3ca6e1a1b0fcb0a64e7708e79b4d4dd3a5b7af46b5,
+                0x2be4b110d6f4df0578dd6160a31f381cc1b5c3efbf81c11f37730d6665459651
             },{
-                0x00214bffda725d14203e9502d3316266920dc8aa33b2402d79cef780f20211a3,
-                0x0dcd420d5dabc29f2d2f5fbd4c5b316009d59907120ecd0a13f8807adaebb33b
+                0x0d605ca93f3ecfb450b1ec408d71bd6553ddcfba24fe584f40eeb661f403fa92,
+                0x243869d5f24d872c6d18822198f5757149881c8ab3fcf2bff1b8d077e3400eff
             }]};
 
     // Number of inputs.
@@ -1900,7 +1900,7 @@ library ZKSNARK {
 
         G1Point vk_x = vk.gamma_abc[0];
 
-
+        
         loop (N) : i {
             G1Point p = BN256.mulG1Point(
                 vk.gamma_abc[i + 1],
@@ -1916,10 +1916,4 @@ library ZKSNARK {
                 proof.c, vk.delta);
     }
 
-}
-
-contract V {
-    public function unlock(int[ZKSNARK.N] inputs, Proof proof) {
-        require(ZKSNARK.verify(inputs, proof));
-    }
 }

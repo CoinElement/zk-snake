@@ -1,10 +1,11 @@
 const { expect } = require('chai');
+const { describe, before } = require('mocha');
 
 
 const { buildContractClass, bsv, PubKeyHash, toHex, Int, getPreimage, PubKey, signTx } = require('scryptlib');
 
 const { loadDesc, newTx, inputSatoshis } = require('../helper');
-const { hashShips, zokratesProof, hashPoison } = require('../verifier.js');
+const { zokratesProof, hashPoison } = require('../verifier.js');
 
 const Signature = bsv.crypto.Signature
 const privateKeyPlayer = new bsv.PrivateKey.fromRandom('testnet')
@@ -12,23 +13,6 @@ const publicKeyPlayer = bsv.PublicKey.fromPrivateKey(privateKeyPlayer)
 
 const privateKeyComputer = new bsv.PrivateKey.fromRandom('testnet')
 const publicKeyComputer = bsv.PublicKey.fromPrivateKey(privateKeyComputer)
-
-const playerShips = [
-  [7, 1, 1],
-  [1, 1, 0],
-  [1, 4, 1],
-  [3, 5, 0],
-  [6, 8, 0],
-];
-
-
-const computerShips = [
-  [7, 1, 1],
-  [1, 1, 0],
-  [1, 4, 1],
-  [3, 5, 0],
-  [6, 8, 0],
-]
 
 const amount = 10000;
 
@@ -54,20 +38,22 @@ describe('Test sCrypt contract BattleShip In Javascript', () => {
     //   new Int(yourhash), new Int(computerhash), 0, 0, true)
   });
 
-
-  async function testMove(contract, ships, x, y, hit, yourturn, newStates) {
+  async function testMove(contract, snakeState1, snakeState2, hit, newStates, poisonState) {
     console.log('generating proof ...')
-    const proof = await zokratesProof(ships, x, y, hit);
+    const proof = await zokratesProof(snakeState1, snakeState2, hit, poisonState);
 
     const tx = newTx();
 
+    // ?
     tx.addOutput(new bsv.Transaction.Output({
       script: contract.getNewStateScript(newStates),
       satoshis: inputSatoshis
     }))
 
-    const sig = signTx(tx, yourturn ? privateKeyPlayer : privateKeyComputer, contract.lockingScript, inputSatoshis, 0, Signature.SIGHASH_SINGLE | Signature.SIGHASH_FORKID)
+    console.log("Stub1")
 
+    const sig = signTx(tx, privateKeyPlayer, contract.lockingScript, inputSatoshis, 0, Signature.SIGHASH_SINGLE | Signature.SIGHASH_FORKID)
+    // 获取Preimage（不用动）
     const preimage = getPreimage(tx, contract.lockingScript, inputSatoshis, 0, Signature.SIGHASH_SINGLE | Signature.SIGHASH_FORKID);
 
     const context = { tx, inputIndex: 0, inputSatoshis: inputSatoshis }
@@ -78,7 +64,8 @@ describe('Test sCrypt contract BattleShip In Javascript', () => {
     const FQ2 = contract.getTypeClassByType("FQ2");
 
     console.log('verify ...')
-    const result = contract.move(sig, x, y, hit, new Proof({
+    // 调用合约
+    const result = contract.move(sig, snakeState1, snakeState2, hit, new Proof({
       a: new G1Point({
         x: new Int(proof.proof.a[0]),
         y: new Int(proof.proof.a[1]),
@@ -100,9 +87,11 @@ describe('Test sCrypt contract BattleShip In Javascript', () => {
 
     }), preimage).verify(context)
 
-    contract.successfulYourHits = newStates.successfulYourHits;
-    contract.successfulComputerHits = newStates.successfulComputerHits;
-    contract.yourTurn = newStates.yourTurn;
+    console.log("Result", result);
+
+    // contract.successfulYourHits = newStates.successfulYourHits;
+    // contract.successfulComputerHits = newStates.successfulComputerHits;
+    // contract.yourTurn = newStates.yourTurn;
 
     return result;
   }
@@ -119,7 +108,13 @@ describe('Test sCrypt contract BattleShip In Javascript', () => {
     // // eslint-disable-next-line no-unused-expressions
     // expect(result.success, result.error).to.be.true
 
-    result = await testMove(zksnake, 1, 0, 0)
+    result = await testMove(zksnake, 1, 0, 0, {
+      player1PoisonHit: false,
+      player2PoisonHit: false,
+      player1Snake: 1,
+      player2Snake: 0
+    }, 16)
+    // eslint-disable-next-line no-unused-expressions
     expect(result.success, result.error).to.be.true
   });
 
@@ -132,7 +127,12 @@ describe('Test sCrypt contract BattleShip In Javascript', () => {
     //   yourTurn: true
     // })
 
-    result = await testMove(zksnake, 1, 0, 1)
+    result = await testMove(zksnake, 1, 0, 1, {
+      player1PoisonHit: true,
+      player2PoisonHit: false,
+      player1Snake: 16,
+      player2Snake: 0
+    }, 16)
 
     // eslint-disable-next-line no-unused-expressions
     expect(result.success, result.error).to.be.true

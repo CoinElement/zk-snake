@@ -20,7 +20,43 @@ const playerShips = [
 ];
 
 
-async function zokratesProof(ships, x, y) {
+// async function zokratesProof(ships, x, y) {
+
+//   const defaultProvider = await initialize();
+
+//   let zokratesProvider = defaultProvider.withOptions({
+//     backend: "bellman",
+//     curve: "bn128",
+//     scheme: "g16"
+//   });
+
+//   const program = fs.readFileSync(path.join(__dirname, 'circuits', 'out'));
+//   let abi = JSON.parse(fs.readFileSync(path.join(__dirname, 'circuits', 'abi.json')).toString());
+
+
+//   // computation
+//   const { witness, output } = zokratesProvider.computeWitness({
+//     program: program,
+//     abi: abi
+//   }, await shipsToWitness(ships, x, y));
+
+//   const provingkey = fs.readFileSync(path.join(__dirname, 'circuits', 'proving.key')).toJSON().data
+//   const verificationkey = JSON.parse(fs.readFileSync(path.join(__dirname, 'circuits', 'verification.key')).toString())
+
+//   const proof = zokratesProvider.generateProof(program, witness, provingkey);
+
+//   // or verify off-chain
+//   const isVerified = zokratesProvider.verify(verificationkey, proof);
+
+//   console.log('isVerified:' + isVerified)
+
+//   return {
+//     proof,
+//     output
+//   };
+// }
+
+async function zokratesProof(snakeState1, snakeState2, hit, poisonState) {
 
   const defaultProvider = await initialize();
 
@@ -33,12 +69,15 @@ async function zokratesProof(ships, x, y) {
   const program = fs.readFileSync(path.join(__dirname, 'circuits', 'out'));
   let abi = JSON.parse(fs.readFileSync(path.join(__dirname, 'circuits', 'abi.json')).toString());
 
+  let poisonHash = await hashPoison(poisonState)
+
+  console.log("PoisonState", poisonState, "PoisonHash", poisonHash)
 
   // computation
   const { witness, output } = zokratesProvider.computeWitness({
     program: program,
     abi: abi
-  }, await shipsToWitness(ships, x, y));
+  }, [poisonState.toString(), snakeState1.toString(), snakeState2.toString(), poisonHash]);
 
   const provingkey = fs.readFileSync(path.join(__dirname, 'circuits', 'proving.key')).toJSON().data
   const verificationkey = JSON.parse(fs.readFileSync(path.join(__dirname, 'circuits', 'verification.key')).toString())
@@ -270,7 +309,7 @@ async function hashPoison(poisonState) {
 
   const mimc7 = await buildMimc7();
 
-  return mimc7.F.toString(mimc7.hash(poisonPreimage, 0))
+  return mimc7.F.toString(await mimc7.hash(poisonPreimage, 0))
 }
 
 
@@ -304,6 +343,7 @@ if (process.argv.includes('--deploy')) {
 module.exports = {
   shipsToWitness,
   hashShips,
+  hashPoison,
   reverseHex,
   zokratesProof
 }

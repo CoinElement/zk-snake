@@ -26,6 +26,22 @@ contract ZkSnake {
 
         require(checkSig(sig, this.playerKey));
 
+        this.player1Snake = snakeState1;
+        this.player2Snake = snakeState2;
+
+        if (hit == 1) {
+            this.player1PoisonHit = true;
+            this.player2PoisonHit = false;
+        }
+        else if (hit == 2) {
+            this.player1PoisonHit = false;
+            this.player2PoisonHit = true;
+        }
+        else {
+            this.player1PoisonHit = false;
+            this.player2PoisonHit = false;
+        }
+
         bytes outputs = b'';
 
         bytes outputScript = this.getStateScript();
