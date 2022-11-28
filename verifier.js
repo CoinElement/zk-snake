@@ -305,11 +305,13 @@ async function hashShips(placedShips) {
 async function hashPoison(poisonState) {
   let poisonPreimage = 0n;
 
+  console.log("-------- PoisonState:" + poisonState)
+
   poisonPreimage = BigInt(poisonState);
 
   const mimc7 = await buildMimc7();
 
-  return mimc7.F.toString(await mimc7.hash(poisonPreimage, 0))
+  return mimc7.F.toString(mimc7.hash(poisonPreimage, 0))
 }
 
 

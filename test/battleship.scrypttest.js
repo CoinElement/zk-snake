@@ -7,15 +7,10 @@ const { loadDesc, newTx, inputSatoshis } = require('../helper');
 const { zokratesProof, hashPoison } = require('../verifier.js');
 const { privateKey } = require("../privateKey");
 
-const Signature = bsv.crypto.Signature
-// const privateKeyPlayer = new bsv.PrivateKey.fromRandom('testnet')
 const privateKeyPlayer = privateKey
 const publicKeyPlayer = bsv.PublicKey.fromPrivateKey(privateKeyPlayer)
 
-console.log(privateKeyPlayer);
-console.log(publicKeyPlayer);
-
-const poisonState = 16;
+const poisonState = 17;
 
 describe('Test sCrypt contract BattleShip In Javascript', () => {
   let result
@@ -29,19 +24,13 @@ describe('Test sCrypt contract BattleShip In Javascript', () => {
 
     zksnake = new ZkSnake(new PubKey(toHex(publicKeyPlayer)),
       new Int(poisonHash), false, false, 0, 0);
-
-    // const yourhash = await hashShips(playerShips);
-    // const computerhash = await hashShips(computerShips);
-    // battleShip = new BattleShip(new PubKey(toHex(publicKeyPlayer)),
-    //   new PubKey(toHex(publicKeyComputer)),
-    //   new Int(yourhash), new Int(computerhash), 0, 0, true)
   });
 
   async function testMove(contract, snakeState1, snakeState2, hit, newStates, poisonState) {
     console.log('generating proof ...')
     const { proof, output } = await zokratesProof(snakeState1, snakeState2, hit, poisonState); // external call
 
-    console.log("Proof: ", proof);
+    console.log("Proof: ", proof, "Output: ", output);
 
     const tx = newTx();
 
@@ -50,13 +39,9 @@ describe('Test sCrypt contract BattleShip In Javascript', () => {
       satoshis: inputSatoshis
     }))
 
-    console.log("Stub1")
+    const sig = signTx(tx, privateKeyPlayer, contract.lockingScript, inputSatoshis)
+    const preimage = getPreimage(tx, contract.lockingScript, inputSatoshis);
 
-    const sig = signTx(tx, privateKeyPlayer, contract.lockingScript, inputSatoshis, 0, Signature.SIGHASH_SINGLE | Signature.SIGHASH_FORKID)
-    const preimage = getPreimage(tx, contract.lockingScript, inputSatoshis, 0, Signature.SIGHASH_SINGLE | Signature.SIGHASH_FORKID);
-
-    // const sig = signTx(tx, privateKeyPlayer, contract.lockingScript, inputSatoshis)
-    // const preimage = getPreimage(tx, contract.lockingScript, inputSatoshis);
     console.log("Preimage", preimage.toJSONObject());
     const context = { tx, inputIndex: 0, inputSatoshis: inputSatoshis }
 
@@ -65,7 +50,7 @@ describe('Test sCrypt contract BattleShip In Javascript', () => {
     const G2Point = contract.getTypeClassByType("G2Point");
     const FQ2 = contract.getTypeClassByType("FQ2");
 
-    console.log('verify ...')
+    console.log('Calling contract move and verify context ...')
     // 调用合约
     const result = contract.move(sig, snakeState1, snakeState2, hit, new Proof({
       a: new G1Point({
@@ -89,57 +74,62 @@ describe('Test sCrypt contract BattleShip In Javascript', () => {
 
     }), preimage).verify(context)
 
-    console.log("Result", result);
+    console.log("Result: ", result);
 
-    // contract.successfulYourHits = newStates.successfulYourHits;
-    // contract.successfulComputerHits = newStates.successfulComputerHits;
-    // contract.yourTurn = newStates.yourTurn;
+    contract.player1Snake = newStates.player1Snake;
+    contract.player2Snake = newStates.player2Snake;
+    contract.player1PoisonHit = newStates.player1PoisonHit;
+    contract.player2PoisonHit = newStates.player2PoisonHit;
 
     return result;
   }
 
 
-  it('should success when poison at [4,0], poisonState is 16, player snake 1, player2 snake 0, hit=0', async () => {
-
-    // result = await testMove(battleShip, playerShips, 1, 1, true, true, {
-    //   successfulYourHits: 1,
-    //   successfulComputerHits: 0,
-    //   yourTurn: false
-    // })
-
-    // // eslint-disable-next-line no-unused-expressions
-    // expect(result.success, result.error).to.be.true
-
+  it('should success when poison at [4,0] and [4,4], poisonState is 17, player snake 1, player2 snake 0, hit=0', async () => {
     result = await testMove(zksnake, 1, 0, 0, {
       player1PoisonHit: false,
       player2PoisonHit: false,
       player1Snake: 1,
       player2Snake: 0
-    }, 16)
+    }, poisonState)
     // eslint-disable-next-line no-unused-expressions
     expect(result.success, result.error).to.be.true
   });
 
 
-  // it('should success when poison at [4,0], poisonState is 16, player1 snake 16, player2 snake 0, hit=1', async () => {
+  it('should success when poison at [4,0] and [4,4], poisonState is 17, player1 snake 16, player2 snake 0, hit=1', async () => {
+    result = await testMove(zksnake, 16, 0, 1, {
+      player1PoisonHit: true,
+      player2PoisonHit: false,
+      player1Snake: 16,
+      player2Snake: 0
+    }, poisonState)
 
-  //   // result = await testMove(battleShip, playerShips, 0, 0, false, false, {
-  //   //   successfulYourHits: 1,
-  //   //   successfulComputerHits: 0,
-  //   //   yourTurn: true
-  //   // })
+    // eslint-disable-next-line no-unused-expressions
+    expect(result.success, result.error).to.be.true
+  });
 
-  //   result = await testMove(zksnake, 1, 0, 1, {
-  //     player1PoisonHit: true,
-  //     player2PoisonHit: false,
-  //     player1Snake: 16,
-  //     player2Snake: 0
-  //   }, 16)
+  it('should success when poison at [4,0] and [4,4], poisonState is 17, player1 snake 0, player2 snake 16, hit=2', async () => {
+    result = await testMove(zksnake, 0, 16, 2, {
+      player1PoisonHit: false,
+      player2PoisonHit: true,
+      player1Snake: 0,
+      player2Snake: 16
+    }, poisonState)
 
-  //   // eslint-disable-next-line no-unused-expressions
-  //   expect(result.success, result.error).to.be.true
+    // eslint-disable-next-line no-unused-expressions
+    expect(result.success, result.error).to.be.true
+  });
 
-  // });
+  it.only('should success when poison at [4,0] and [4,4], poisonState is 17, player1 snake 0, player2 snake 3, hit=2', async () => {
+    result = await testMove(zksnake, 0, 3, 2, {
+      player1PoisonHit: false,
+      player2PoisonHit: true,
+      player1Snake: 0,
+      player2Snake: 3
+    }, poisonState)
 
-
+    // eslint-disable-next-line no-unused-expressions
+    expect(result.success, result.error).to.be.true
+  });
 });
