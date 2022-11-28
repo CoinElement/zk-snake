@@ -4,7 +4,7 @@ import "./u32_to_field" as u32_to_field;
 
 // return hit, 1:player1, 2:player2, 0:no
 def main(private u32 poisonState, u32 snakeState1, u32 snakeState2, field poisonHash) -> u8 {
-    assert(mimc7::<25>(u32_to_field(poisonState), 0) == poisonHash);
+    assert(mimc7::<91>(u32_to_field(poisonState), 0) == poisonHash);
 
     bool isSnake1Hit = (poisonState & snakeState1) > 0;
     bool isSnake2Hit = (poisonState & snakeState2) > 0;

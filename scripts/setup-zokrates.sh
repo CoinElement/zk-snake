@@ -9,7 +9,7 @@ mkdir -p public/zk
 
 cd circuits
 
-zokrates compile --debug -i battleship.zok
+zokrates compile --debug -i snake.zok
 
 zokrates setup
 
@@ -21,8 +21,6 @@ cp out abi.json verification.key proving.key ../public/zk/
 
 cd ..
 
-npx scryptlib ./contracts/battleship.scrypt
+# npx scryptlib ./contracts/zksnake.scrypt
 
-cp ./out/battleship_desc.json ./public/battleship_debug_desc.json
-
-
+# cp ./out/zksnake_desc.json ./public/zksnake_debug_desc.json
