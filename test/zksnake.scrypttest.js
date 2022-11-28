@@ -85,8 +85,8 @@ describe('Test sCrypt contract ZkSnake In Javascript', () => {
   }
 
 
-  it('should success when poison at [4,0] and [4,4], poisonState is 17, player snake 1, player2 snake 0, hit=0', async () => {
-    result = await testMove(zksnake, 1, 0, 0, {
+  it('should success when poison at [4,0] and [4,4], poisonState is 17, player snake 1, player2 snake 0, hit=1', async () => {
+    result = await testMove(zksnake, 1, 0, 1, {
       player1PoisonHit: false,
       player2PoisonHit: false,
       player1Snake: 1,
