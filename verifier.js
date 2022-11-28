@@ -188,24 +188,24 @@ async function deploy() {
   const { proof, output } = await zokratesProof(playerShips, 6, 8, true);
 
 
-  const Battleship = buildContractClass(loadDesc('battleship'));
+  const ZkSnake = buildContractClass(loadDesc('zksnake'));
 
-  const { Proof, G1Point, G2Point, FQ2 } = buildTypeClasses(Battleship);
+  const { Proof, G1Point, G2Point, FQ2 } = buildTypeClasses(ZkSnake);
 
   const playerHash = await hashShips(playerShips);
   const computerHash = await hashShips(playerShips);
 
-  const battleship = new Battleship(new PubKey(toHex(publicKeyPlayer)),
+  const zksnake = new ZkSnake(new PubKey(toHex(publicKeyPlayer)),
     new PubKey(toHex(publicKeyComputer)),
     new Int(playerHash), new Int(computerHash), 0, 0, true);
 
   console.log("deploying  ...");
   const initAmount = 1000;
-  const deployTx = await deployContract(battleship, initAmount);
+  const deployTx = await deployContract(zksnake, initAmount);
 
   console.log("deployed:", deployTx.id);
 
-  const newLockingScript = battleship.getNewStateScript({
+  const newLockingScript = zksnake.getNewStateScript({
     successfulYourHits: output ? 1 : 0,
     successfulComputerHits: 0,
     yourTurn: false
@@ -234,7 +234,7 @@ async function deploy() {
       const sig = signTx(tx, privateKey, output.script, output.satoshis)
       let amount = initAmount - tx.getEstimateFee();
 
-      return battleship.move(sig, 6, 8, true, new Proof({
+      return zksnake.move(sig, 6, 8, true, new Proof({
         a: new G1Point({
           x: new Int(proof.proof.a[0]),
           y: new Int(proof.proof.a[1]),

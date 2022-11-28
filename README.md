@@ -1,4 +1,4 @@
-# Battleship
+# ZkSnake
 
 # Setup
 

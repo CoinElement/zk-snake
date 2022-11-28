@@ -12,7 +12,7 @@ const publicKeyPlayer = bsv.PublicKey.fromPrivateKey(privateKeyPlayer)
 
 const poisonState = 17;
 
-describe('Test sCrypt contract BattleShip In Javascript', () => {
+describe('Test sCrypt contract ZkSnake In Javascript', () => {
   let result
   let zksnake
 
@@ -121,7 +121,7 @@ describe('Test sCrypt contract BattleShip In Javascript', () => {
     expect(result.success, result.error).to.be.true
   });
 
-  it.only('should success when poison at [4,0] and [4,4], poisonState is 17, player1 snake 0, player2 snake 3, hit=2', async () => {
+  it('should success when poison at [4,0] and [4,4], poisonState is 17, player1 snake 0, player2 snake 3, hit=2', async () => {
     result = await testMove(zksnake, 0, 3, 2, {
       player1PoisonHit: false,
       player2PoisonHit: true,

@@ -21,6 +21,6 @@ cp out abi.json verification.key proving.key ../public/zk/
 
 cd ..
 
-# npx scryptlib ./contracts/zksnake.scrypt
+npx scryptlib ./contracts/zksnake.scrypt
 
-# cp ./out/zksnake_desc.json ./public/zksnake_debug_desc.json
+cp ./out/zksnake_desc.json ./public/zksnake_debug_desc.json
